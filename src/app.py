@@ -5,12 +5,13 @@ import json
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
 
-from src.config import APP_NAME, APP_VERSION, DB_NAME
-from src.database import DBAccess
+from src.config import APP_NAME, APP_VERSION, DB_NAME, STORAGE_PATH
+from src.persistance import DBAccess, FileSystem
 
 app = Flask(APP_NAME)
 api = Api(app)
 db = DBAccess(DB_NAME)
+fs = FileSystem(STORAGE_PATH)
 
 class Version(Resource):
     def get(self):
@@ -21,53 +22,66 @@ class Login(Resource):
         data = request.get_json()
         username = data['username']
         password = data['password']
-        token = db.new_user(username, password)
+        token = db.login(username, password)
         if token:
-            return {'token': token}
-        else:
-            return {'error': 'username already exists'}
+            return {'access_token': token}
+        return {'error': 'Invalid username or password'}
 
 class Signup(Resource):
     def post(self):
-        autorization = request.authorization
-        print('Autorización: ', autorization)
-        token = request.headers.get('token')
-        db.verify_token(token)
-        if db.verify_token(token) is None:
-            return {'error': 'Token expired'}
-        print(token)
         data = request.get_json()
-        print(data)
-        return {'status':'ok'}
+        username = data['username']
+        password = data['password']
+        token = db.signup(username, password)
+        if token:
+            return {'access_token': token}
+        else:
+            return {'error': 'username already exists'}
 
 class Docs(Resource):
-    def get(self):
-        return {'status':'ok'}
+    def get(self, username, doc_id):
+
+        if not db.verify_token(request.headers['Authorization'], username):
+            return {'error': 'invalid token'}
+
+        doc_content = fs.getFile(username, doc_id)
+        if doc_content is None:
+            return {'error': 'File not found'}
+        else:
+            return doc_content
 
     def post(self, username, doc_id):
-        print(username, doc_id)
+        if not db.verify_token(request.headers['Authorization'], username):
+            return {'error': 'invalid token'}
+
         data = request.get_json()
-        db.set(username, data)
-        return {'status':'ok'}
+        return fs.newFile(username, doc_id, data['doc_content'])
     
     def put(self, username, doc_id):
-        data = request.get_json()
-        db.set(username, data)
-        return {'status':'ok'}
-    
+        if not db.verify_token(request.headers['Authorization'], username):
+            return {'error': 'invalid token'}
+
+        return fs.updateFile(username, doc_id, request.get_json()['doc_content'])
+
     def delete(self, username, doc_id):
-        db.delete(username, doc_id)
-        return {'status':'ok'}
+        if not db.verify_token(request.headers['Authorization'], username):
+            return {'error': 'invalid token'}
+        return fs.deleteFile(username, doc_id)
     
+
+class AllDocs(Resource):
     def get(self, username):
-        return {'status':'get all'}
+        if not db.verify_token(request.headers['Authorization'], username):
+            return {'error': 'invalid token'}
+        return fs.getFiles(username)
+
 
 
 api.add_resource(Version, '/version')
 api.add_resource(Login, '/login')
 api.add_resource(Signup, '/signup')
-api.add_resource(Docs, '/<string:username>/<string:doc_id>', '/<string:username>/all_docs')
-
+api.add_resource(Docs, '/<string:username>/<string:doc_id>')
+api.add_resource(AllDocs, '/<string:username>')
 
 
 

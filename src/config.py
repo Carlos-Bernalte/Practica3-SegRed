@@ -8,5 +8,6 @@ APP_PORT = 5000
 APP_DEBUG = True
 
 DB_NAME = 'db.json'
+STORAGE_PATH = 'storage'
 
 
