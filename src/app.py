@@ -6,7 +6,7 @@ from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
 
 from src.config import APP_NAME, APP_VERSION, DB_NAME
-from src.database import DBAccess
+from src.DBAccess import DBAccess
 
 app = Flask(APP_NAME)
 api = Api(app)
