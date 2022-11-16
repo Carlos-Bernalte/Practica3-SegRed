@@ -20,9 +20,10 @@ class Version(Resource):
 class Login(Resource):
     def post(self):
         data = request.get_json()
-        username = data['username']
-        password = data['password']
-        token = db.login(username, password)
+        if 'username' not in data or 'password' not in data:
+            return {'error': 'Missing username or password'}, 400
+
+        token = db.login(data['username'], data['password'])
         if token:
             return {'access_token': token}
         return {'error': 'Invalid username or password'}
@@ -30,9 +31,10 @@ class Login(Resource):
 class Signup(Resource):
     def post(self):
         data = request.get_json()
-        username = data['username']
-        password = data['password']
-        token = db.signup(username, password)
+        if 'username' not in data or 'password' not in data:
+            return {'error': 'Missing username or password'}, 400
+
+        token = db.signup(data['username'], data['password'])
         if token:
             return {'access_token': token}
         else:
@@ -59,7 +61,7 @@ class Docs(Resource):
     
     def put(self, username, doc_id):
         if not db.verify_token(request.headers['Authorization'], username):
-            return {'error': 'invalid token'}
+            return jsonify({'error': 'invalid token'})
 
         return fs.updateFile(username, doc_id, request.get_json()['doc_content'])
 
@@ -75,6 +77,9 @@ class AllDocs(Resource):
             return {'error': 'invalid token'}
         return fs.getFiles(username)
 
+class Error(Resource):
+    def get(self):
+        return {'error': 'Invalid request'}
 
 
 api.add_resource(Version, '/version')

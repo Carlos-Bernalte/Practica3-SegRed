@@ -14,6 +14,7 @@ class DBAccess:
     def __init__(self, db_name):
         self.db_name = db_name
         self.db = {}
+        self.tokens = {}
         self.load_db()
         self.save_db()
 
@@ -48,7 +49,7 @@ class DBAccess:
     def confirm_token(self, token, username):
         self.load_db()
         if username in self.db:
-            if self.db[username]['token'] == token:
+            if self.tokens[username]== token:
                 return True
         return False
 
@@ -70,18 +71,18 @@ class DBAccess:
         self.load_db()
         if username in self.db:
             return None
-        token = self.create_token(username)
-        password = self.hash_password(password)
-        self.db[username] = {'password': password, 'token': token}
+        token = self.create_token(username)  
+        self.db[username] = self.hash_password(password)
+        self.tokens[username]= token
         self.save_db()
         return token
 
     def login(self, username, password):
         self.load_db()
         if username in self.db:
-            if self.db[username]['password'] == self.hash_password(password):
+            if self.db[username]== self.hash_password(password):
                 token = self.create_token(username)
-                self.db[username]['token'] = token
+                self.tokens[username]= token
                 self.save_db()
                 return token
         return None
