@@ -2,7 +2,7 @@ import requests
 import json
 import urllib3
 import uuid
-# urllib3.disable_warnings()
+urllib3.disable_warnings()
 
 uri = 'https://myserver.local:5000'
 
@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
   # Test post doc
   print('---------------Test post doc---------------')
-  for i in range(0, 10):
+  for i in range(0, 5):
       doc1=post_random_doc('test1', token1)
       doc2=post_random_doc('test2', token2)
       doc3=post_random_doc('test3', token3)

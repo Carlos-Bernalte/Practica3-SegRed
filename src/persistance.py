@@ -22,7 +22,6 @@ class DBAccess:
         self.load_db()
         self.save_db()
         self.key = os.getenv('SECRET_KEY')
-        print(self.key)
     '''Hashear la contraseña con un salt en base a el username'''
 
     def hash_password(self, username,password):

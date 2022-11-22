@@ -39,6 +39,8 @@ Para poder utilizar HTTPS, es necesario disponer de un certificado y una clave, 
 ```bash
     make cert
 ```
+Importante que a a la hora de crear el certificado se le ponga el nombre de dominio que se va a utilizar, en este caso myserver.local y de la contraseña que se le ponga a la clave, ya que se va a utilizar en el servidor para iniciarlo.
+
 En caso que haya algun problema exportando el certificado, se le puede indicar a curlo mediante la opción --cacert el certificado que se ha generado.
 ```bash
     curl --cacert cert/cert.pem https://myserver.local:5000/version
