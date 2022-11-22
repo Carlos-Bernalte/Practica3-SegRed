@@ -17,7 +17,7 @@ class DBAccess:
     def __init__(self, db_name):
         self.db_name = db_name
         self.db = {}
-        self.save_db()
+        # self.save_db()
         self.tokens = {}
         self.load_db()
         self.save_db()
