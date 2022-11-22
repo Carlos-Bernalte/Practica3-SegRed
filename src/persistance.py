@@ -22,14 +22,13 @@ class DBAccess:
         self.load_db()
         self.save_db()
         self.key = os.getenv('SECRET_KEY')
-    '''Hashear la contraseña con un salt en base a el username'''
 
     def hash_password(self, username,password):
         salt = username.encode('utf-8')
         key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
         return base64.b64encode(salt + key).decode()
         
-    '''Crear un token que expira en 1 minuto'''
+
     def create_token(self, username):
         expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
         token = jwt.encode({'username': username, 'exp': expiration}, self.key, algorithm='HS256')
@@ -117,7 +116,7 @@ class FileSystem:
         return {'error': 'File not found'}
 
 
-    '''Devolver el contenido de todos los archivos de un usuario'''
+    
     def getFiles(self, username):
         all_files = {}
         for root, dirs, files in os.walk(os.path.join(self.path, username)):
@@ -125,7 +124,7 @@ class FileSystem:
                 with open(os.path.join(root, name), 'r') as f:
                     all_files[name] = {'doc_content':f.read()}
         return all_files
-    '''Devolver el contenido del archivo en formato JSON'''
+    
     def getFile(self, username, doc_id):
         if self.file_exists(username, doc_id):
             with open(os.path.join(self.path, username, doc_id), 'r') as f:
