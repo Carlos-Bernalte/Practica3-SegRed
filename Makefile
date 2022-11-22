@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 ENV_BIN := .venv/bin
 
-install: venv requirements cert add_domain
+install: venv requirements cert add-domain
 
 venv:
 	@echo "Creating virtual environment..."
@@ -17,12 +17,14 @@ requirements:
 
 cert:
 	@echo "Creating certificates..."
-	@mkdir certs
+	@mkdir cert
 	@openssl req -x509 --newkey rsa:4096 --out cert/cert.pem --keyout cert/key.pem --days 365
 	@sudo cp cert/cert.pem /usr/local/share/ca-certificates/cert.crt
 	@sudo update-ca-certificates
 	@echo "Certificates created."
-
+env:
+	@echo "Creating .env file..."
+	@echo "SECRET_KEY='secret'" > .env
 
 add-domain:
 	@echo "Adding domain to hosts file..."
