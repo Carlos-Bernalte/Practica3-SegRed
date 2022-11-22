@@ -7,30 +7,40 @@ import hashlib
 import base64
 import jwt
 import datetime
+from dotenv import load_dotenv
 
-SECRET_KEY = 'secret'
+load_dotenv()
+
+
 class DBAccess:
 
     def __init__(self, db_name):
         self.db_name = db_name
         self.db = {}
+        self.save_db()
         self.tokens = {}
         self.load_db()
         self.save_db()
+        self.key = os.getenv('SECRET_KEY')
+        print(self.key)
+    '''Hashear la contraseña con un salt en base a el username'''
 
-    def hash_password(self, password):
-        return hashlib.sha256(password.encode('utf-8')).hexdigest()
+    def hash_password(self, username,password):
+        salt = username.encode('utf-8')
+        key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+        return base64.b64encode(salt + key).decode()
+        
     '''Crear un token que expira en 1 minuto'''
     def create_token(self, username):
         expiration = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-        token = jwt.encode({'username': username, 'exp': expiration}, SECRET_KEY, algorithm='HS256')
+        token = jwt.encode({'username': username, 'exp': expiration}, self.key, algorithm='HS256')
         return token
 
 
     def verify_token(self, token, username):
         
         try:
-            data = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            data = jwt.decode(token, self.key, algorithms=['HS256'])
             expiration = datetime.datetime.fromtimestamp(data['exp'])
             if expiration < datetime.datetime.utcnow():
                 print('Token expired')
@@ -72,7 +82,7 @@ class DBAccess:
         if username in self.db:
             return None
         token = self.create_token(username)  
-        self.db[username] = self.hash_password(password)
+        self.db[username] = self.hash_password(username,password)
         self.tokens[username]= token
         self.save_db()
         return token
@@ -80,7 +90,7 @@ class DBAccess:
     def login(self, username, password):
         self.load_db()
         if username in self.db:
-            if self.db[username]== self.hash_password(password):
+            if self.db[username]== self.hash_password(username,password):
                 token = self.create_token(username)
                 self.tokens[username]= token
                 self.save_db()
