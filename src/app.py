@@ -40,7 +40,7 @@ class Signup(Resource):
         if data['username'] == "" or data['password']== "":
             return {'error': 'Invalid username or password'}, 400
         
-        if data['username'].split(' ') > 1:
+        if len(data['username'].split(' ')) > 1:
             return {'error': 'Invalid username'}, 400
 
         token = db.signup(data['username'], data['password'])
