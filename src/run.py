@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 import argparse
-from src.config import APP_HOST, APP_PORT, APP_DEBUG
-from src.app import app
+from src.config import APP_HOST, APP_PORT
+from src.app import run_app
 
-argparser = argparse.ArgumentParser()
-argparser.add_argument('--host', default=APP_HOST)
-argparser.add_argument('--port', default=APP_PORT)
-args = argparser.parse_args()
 
-context = ('./cert/cert.pem', './cert/key.pem')
-app.run(debug=APP_DEBUG, host=args.host, port=args.port, ssl_context=context)
+def args():
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('--host', default=APP_HOST, type=str)
+    argparser.add_argument('--port', default=APP_PORT, type=int)
+    return argparser.parse_args()
 
+    
+
+if __name__ == '__main__':
+    args = args()
+    run_app(args.host, args.port)

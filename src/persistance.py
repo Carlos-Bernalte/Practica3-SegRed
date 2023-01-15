@@ -14,14 +14,14 @@ load_dotenv()
 
 class DBAccess:
 
-    def __init__(self, db_name):
+    def __init__(self,key, db_name='src/shadow.json',):
         self.db_name = db_name
         self.db = {}
-        # self.save_db()
+        self.save_db()
         self.tokens = {}
         self.load_db()
         self.save_db()
-        self.key = os.getenv('SECRET_KEY')
+        self.key = key
 
     def hash_password(self, username,password):
         salt = username.encode('utf-8')
@@ -97,7 +97,7 @@ class DBAccess:
 
 class FileSystem:
 
-    def __init__(self, path):
+    def __init__(self, path='src/storage'):
         self.path = path
         os.makedirs(self.path, exist_ok=True)
 
@@ -105,7 +105,7 @@ class FileSystem:
         if not self.file_exists(username, doc_id):
             os.makedirs(os.path.join(self.path, username), exist_ok=True)
             with open(os.path.join(self.path, username, doc_id), 'w') as f:
-                f.write(data)
+                json.dump(data, f)
             return {'size': os.path.getsize(os.path.join(self.path, username, doc_id))}
         return {'error': 'File already exists'}
 
@@ -122,25 +122,26 @@ class FileSystem:
         for root, dirs, files in os.walk(os.path.join(self.path, username)):
             for name in files:
                 with open(os.path.join(root, name), 'r') as f:
-                    all_files[name] = {'doc_content':f.read()}
+                    all_files[name] = json.load(f)
         return all_files
     
     def getFile(self, username, doc_id):
         if self.file_exists(username, doc_id):
             with open(os.path.join(self.path, username, doc_id), 'r') as f:
-                return {'doc_content': f.read()}
+                return json.load(f)
         return {'error': 'File not found'}
     
     def updateFile(self, username, doc_id, data):
         if self.file_exists(username, doc_id):
             with open(os.path.join(self.path, username, doc_id), 'w') as f:
-                f.write(data)
+                json.dump(data, f)
             return {'size': os.path.getsize(os.path.join(self.path, username, doc_id))}
         return {'error': 'File not found'}
 
 
     def file_exists(self, username, doc_id):
         return os.path.isfile(os.path.join(self.path, username, doc_id))
+
 
     
 

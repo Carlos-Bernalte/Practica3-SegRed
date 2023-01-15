@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
-import json
-
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource
 
-from src.config import APP_NAME, APP_VERSION, DB_NAME, STORAGE_PATH
+from src.config import APP_NAME, APP_VERSION, SECRET_KEY
 from src.persistance import DBAccess, FileSystem
 
 app = Flask(APP_NAME)
 api = Api(app)
-db = DBAccess(DB_NAME)
-fs = FileSystem(STORAGE_PATH)
+db = DBAccess(SECRET_KEY)
+fs = FileSystem()
 
 class Version(Resource):
     def get(self):
@@ -29,7 +27,7 @@ class Login(Resource):
         token = db.login(data['username'], data['password'])
         if token:
             return {'access_token': token}
-        return {'error': 'Invalid username or password'}
+        return {'error': 'Invalid username or password'}, 400
 
 class Signup(Resource):
     def post(self):
@@ -52,57 +50,68 @@ class Signup(Resource):
 
 class Docs(Resource):
     def get(self, username, doc_id):
-        header=request.headers['Authorization'].split(' ')
-        if header[0] == 'token':
-            if not db.verify_token(header[1], username):
-                return {'error': 'invalid token'}, 401
 
+        if not check_token(request.headers, username):
+            return {'error': 'invalid token'}, 401
 
-        doc_content = fs.getFile(username, doc_id)
-        if doc_content is None:
-            return {'error': 'File not found'} , 404
-        else:
-            return doc_content
+        result = fs.getFile(username, doc_id)
+        if 'error' in result:
+            return result, 404
+        return result, 200
 
     def post(self, username, doc_id):
-        header=request.headers['Authorization'].split(' ')
-        if header[0] == 'token':
-            if not db.verify_token(header[1], username):
-                return {'error': 'invalid token'}, 401
-
+        if not check_token(request.headers, username):
+            return {'error': 'invalid token'}, 401
         data = request.get_json()
-        return fs.newFile(username, doc_id, data['doc_content']), 201
+        result=fs.newFile(username, doc_id, data['doc_content'])
+        if 'error' in result:
+            return result, 400
+        return result, 201
     
     def put(self, username, doc_id):
-        header=request.headers['Authorization'].split(' ')
-        if header[0] == 'token':
-            if not db.verify_token(header[1], username):
-                return {'error': 'invalid token'}
+        if not check_token(request.headers, username):
+            return {'error': 'invalid token'}, 401
 
-        return fs.updateFile(username, doc_id, request.get_json()['doc_content']), 200
+        result=fs.updateFile(username, doc_id, request.get_json()['doc_content'])
+        if 'error' in result:
+            return result, 400
+        return result, 201
 
     def delete(self, username, doc_id):
-        header=request.headers['Authorization'].split(' ')
-        if header[0] == 'token':
-            if not db.verify_token(header[1], username):
-                return {'error': 'invalid token'}
-
-        return fs.deleteFile(username, doc_id), 200
+        if not check_token(request.headers, username):
+            return {'error': 'invalid token'}, 401
+        result=fs.deleteFile(username, doc_id)
+        if 'error' in result:
+            return result, 400
+        return result, 200
     
 
 class AllDocs(Resource):
     def get(self, username):
-        header=request.headers['Authorization'].split(' ')
-        if header[0] == 'token':
-            if not db.verify_token(header[1], username):
-                return jsonify({'error': 'invalid token'}, 401)
-
+        if not check_token(request.headers, username):
+            return {'error': 'invalid token'}, 401
+        
         return fs.getFiles(username), 200
 
+def check_token(header, username):
+    header=request.headers['Authorization'].split(' ')
+    if header[0] == 'token':
+        if db.verify_token(header[1], username):
+            print('Existing token')
+            return True
+    return False
 
 api.add_resource(Version, '/version')
 api.add_resource(Login, '/login')
 api.add_resource(Signup, '/signup')
 api.add_resource(Docs, '/<string:username>/<string:doc_id>')
-api.add_resource(AllDocs, '/<string:username>')
+api.add_resource(AllDocs, '/<string:username>/_all_docs')
+
+def run_app(host:int, port:str):
+    try:
+        context = ('cert/myserver.local.crt', 'cert/myserver.local.key')
+        app.run(host=host, port=port, debug=True, ssl_context=context)
+    except Exception as e:
+        print('[ERROR] ',e)
+    
 
