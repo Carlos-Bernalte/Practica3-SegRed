@@ -14,14 +14,24 @@ load_dotenv()
 
 class DBAccess:
 
-    def __init__(self,key, db_name='src/shadow.json',):
+    def __init__(self,key, db_name='src/shadow.json'):
         self.db_name = db_name
         self.db = {}
-        self.save_db()
         self.tokens = {}
-        self.load_db()
-        self.save_db()
         self.key = key
+
+        if os.path.exists(self.db_name):
+            self.load_db()
+        else:
+            self.save_db()
+
+        
+    def check_db(self):
+        if os.path.exists(self.db_name):
+            self.load_db()
+        else:
+            # self.db = {}
+            self.save_db()
 
     def hash_password(self, username,password):
         salt = username.encode('utf-8')
@@ -55,7 +65,7 @@ class DBAccess:
             return False
             
     def confirm_token(self, token, username):
-        self.load_db()
+        self.check_db()
         if username in self.db:
             if self.tokens[username]== token:
                 return True
@@ -76,7 +86,7 @@ class DBAccess:
     
 
     def signup(self, username, password):
-        self.load_db()
+        self.check_db()
         if username in self.db:
             return None
         token = self.create_token(username)  
@@ -86,7 +96,7 @@ class DBAccess:
         return token
 
     def login(self, username, password):
-        self.load_db()
+        self.check_db()
         if username in self.db:
             if self.db[username]== self.hash_password(username,password):
                 token = self.create_token(username)

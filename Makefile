@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-
+all: requirements certificates add-domain run 
 requirements:
 	@echo "Installing dependencies..."
 	.venv/bin/python -m pip install --upgrade pip

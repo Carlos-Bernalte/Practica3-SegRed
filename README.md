@@ -25,9 +25,9 @@ Los objetivos de esta práctica son los siguientes:
 Vamos a crear un prototipo de base de datos como servicio. Empezaremos con algo totalmente funcional y que se puede utilizar para almacenar documentos en formato JSON. La base de datos se podrá utilizar como una API RESTful y permitirá diferentes cuentas de usuarios.
 
 Para este prototipo, el programa servidor se asumirá en el endpoint
-https://myserver.local:5000 donde myserver.local resolverá a 127.0.0.1. 
+`https://myserver.local:5000` donde `myserver.local` resolverá a 127.0.0.1. 
 
-El servidor se ejecutará en el puerto 5000 y se utilizará el protocolo HTTPS
+El servidor se ejecutará en el puerto `5000` y se utilizará el protocolo HTTPS
 
 Aún asi se puede llamar las reglas de forma individual por si algu paso ya esta instalado.
 ## Requisitos
@@ -42,6 +42,10 @@ Una vez se instale el entorno virtual, lo activaremos para que las dependencias 
 
 ```bash
     source ./venv/bin/activate
+```
+Una vez lo hayamos activado puedes ejecutar `make all` para que te haga todos los pasos anteriores a 
+```bash
+    
     make requirements
 ```
 ### Certificado SSL
@@ -73,16 +77,10 @@ Para ejecutar el servidor, se puede utilizar el siguiente comando:
 ```
 Si obtienes el error `Name or service not found` es por que no has añadido el dominio especificado en el apartado [anterior](#añadir-dominio-al-sistema), compruebalo o bien el archivo `/etc/hosts`.
 ## Testing
-Como tal no hay tests, pero se puede probar el funcionamiento del servidor con el siguiente comando llenando la base de datos con datos de prueba:
+El archivo `test.py` es el que se nos facilita en el campus con algunas modificaciones.
 
 ```bash
     make test
-```
-En el codigo se puede apreciar una linea donde desabilitamos los warnings de certificado, esto es debido a que el certificado es autofirmado y no es seguro, pero para este caso es suficiente. [Link del debate](https://github.com/urllib3/urllib3/issues/497).
-
-```python
-    import urllib3
-    urllib3.disable_warnings()
 ```
 
 ## Aspectos adicionles de la práctica

@@ -109,9 +109,16 @@ api.add_resource(AllDocs, '/<string:username>/_all_docs')
 
 def run_app(host:int, port:str):
     try:
-        context = ('cert/myserver.local.crt', 'cert/myserver.local.key')
-        app.run(host=host, port=port, debug=True, ssl_context=context)
+        app.run(
+                host=host, 
+                port=port, 
+                debug=True, 
+                ssl_context=('cert/myserver.local.crt', 'cert/myserver.local.key')
+                )
+    except FileNotFoundError:
+        print('[ERROR] Certificado no encontrado')
     except Exception as e:
         print('[ERROR] ',e)
+    
     
 
